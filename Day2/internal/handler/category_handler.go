@@ -92,3 +92,107 @@ func (c *CategoryHandler) GetCategoryById(w http.ResponseWriter, r *http.Request
 	}
 	utils.WriteJson(w, http.StatusOK, response)
 }
+
+// update category by id
+func (h *CategoryHandler) UpdateCategoryById(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "PUT" {
+		response := model.Response{
+			Message: "Method not allowed",
+			Status:  "error",
+		}
+		utils.WriteJson(w, http.StatusMethodNotAllowed, response)
+		return
+	}
+	categoryId := r.URL.Path[len("/categories/update/"):]
+
+	defer r.Body.Close()
+
+	var category model.Categories
+	if err := json.NewDecoder(r.Body).Decode(&category); err != nil {
+		response := model.Response{
+			Message: err.Error(),
+			Status:  "error",
+		}
+		utils.WriteJson(w, http.StatusInternalServerError, response)
+		return
+	}
+	categoryReturn, error := h.serviceInstance.UpdateCategoryById(categoryId, &category)
+	if error != nil {
+		response := model.Response{
+			Message: error.Error(),
+			Status:  "error",
+		}
+		utils.WriteJson(w, http.StatusInternalServerError, response)
+		return
+	}
+	response := model.Response{
+		Message: "Category updated successful",
+		Status:  "success",
+		Data:    categoryReturn,
+	}
+	utils.WriteJson(w, http.StatusOK, response)
+}
+
+// delete category
+func (h *CategoryHandler) DeleteCategoryById(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "DELETE" {
+		response := model.Response{
+			Message: "Method not allowed",
+			Status:  "error",
+		}
+		utils.WriteJson(w, http.StatusMethodNotAllowed, response)
+	}
+	categoryId := r.URL.Path[len("/categories/update/"):]
+
+	err := h.serviceInstance.DeleteCategoryById(categoryId)
+	if err != nil {
+		response := model.Response{
+			Message: err.Error(),
+			Status:  "error",
+		}
+		utils.WriteJson(w, http.StatusInternalServerError, response)
+		return
+	}
+	response := model.Response{
+		Message: "Delete successful",
+		Status:  "success",
+	}
+	utils.WriteJson(w, http.StatusOK, response)
+}
+
+// add product into category
+func (s *CategoryHandler) AddProductIntoCategory(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "PUT" {
+		response := model.Response{
+			Message: "Method not allowed",
+			Status:  "error",
+		}
+		utils.WriteJson(w, http.StatusMethodNotAllowed, response)
+		return
+	}
+	var categoryRequest model.CategoryRequest
+	if err := json.NewDecoder(r.Body).Decode(&categoryRequest); err != nil {
+		response := model.Response{
+			Message: err.Error(),
+			Status:  "error",
+		}
+		utils.WriteJson(w, http.StatusInternalServerError, response)
+		return
+	}
+	categoryProduct, err := s.serviceInstance.AddProductIntoCategory(&categoryRequest)
+	if err != nil {
+		response := model.Response{
+			Message: err.Error(),
+			Status:  "error",
+		}
+		utils.WriteJson(w, http.StatusInternalServerError, response)
+		return
+	}
+
+	response := model.Response{
+		Message: "Add product into category successfully",
+		Status:  "success",
+		Data:    categoryProduct,
+	}
+	utils.WriteJson(w, http.StatusOK, response)
+}

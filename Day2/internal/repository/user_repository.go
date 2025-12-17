@@ -17,7 +17,7 @@ type PostgresUserRepository struct {
 }
 
 // init a new PostgresUserRepository
-func NewPostgresUserRepository(db *sql.DB) *PostgresUserRepository {
+func NewPostgresUserRepository(db *sql.DB) UserRepository {
 	return &PostgresUserRepository{db: db}
 }
 
@@ -38,10 +38,31 @@ func (r *PostgresUserRepository) GetUserByID(id string) (*model.User, error) {
 	row := r.db.QueryRow(query, id)
 	user := &model.User{}
 	err := row.Scan(&user.ID, &user.Name, &user.Email)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
 	return user, err
 }
 
 // update user by id
 func (r *PostgresUserRepository) UpdateUserById(user *model.User, id string) (*model.User, error) {
-	
+	query := "SELECT id, name, email from update_user_by_id($1, $2, $3)"
+	row := r.db.QueryRow(query, id, user.Name, user.Email)
+	userSaved := &model.User{}
+	err := row.Scan(&userSaved.ID, &userSaved.Name, &userSaved.Email)
+	if err != nil {
+		return nil, err
+	}
+	return userSaved, nil
+}
+
+// delete user by id
+func (r *PostgresUserRepository) DeleteUserById(id string) error {
+	query := "SELECT delete_user($1)"
+	_, err := r.db.Exec(query, id)
+	return err
 }

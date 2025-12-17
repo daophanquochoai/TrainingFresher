@@ -19,7 +19,7 @@ type InMemoryUserRepository struct {
 }
 
 // NewInMemoryUserRepository initializes a new in-memory user repository.
-func NewInMemoryUserRepository() *InMemoryUserRepository {
+func NewInMemoryUserRepository() UserRepository {
 	return &InMemoryUserRepository{
 		data: make(map[string]*model.User),
 	}

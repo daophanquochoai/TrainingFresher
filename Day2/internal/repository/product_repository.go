@@ -8,6 +8,8 @@ import (
 type ProductRepository interface {
 	CreateProduct(product *model.Product) (*model.Product, error)
 	GetProductById(id string) (*model.Product, error)
+	DeleteProductById(id string) error
+	UpdateProductById(id string, product *model.Product) (*model.Product, error)
 }
 
 type PostgresProductRepository struct {
@@ -15,7 +17,7 @@ type PostgresProductRepository struct {
 }
 
 // init a new PostgresProductRepository
-func NewPostgresProductRepository(db *sql.DB) *PostgresProductRepository {
+func NewPostgresProductRepository(db *sql.DB) ProductRepository {
 	return &PostgresProductRepository{db: db}
 }
 
@@ -37,4 +39,22 @@ func (r *PostgresProductRepository) GetProductById(id string) (*model.Product, e
 	product := &model.Product{}
 	err := row.Scan(&product.Id, &product.Name, &product.Price)
 	return product, err
+}
+
+// delete product by id
+func (r *PostgresProductRepository) DeleteProductById(id string) error {
+	query := "SELECT delete_product_by_id($1)"
+	_, err := r.db.Exec(query, id)
+	return err
+}
+
+// update product by id
+func (r *PostgresProductRepository) UpdateProductById(id string, product *model.Product) (*model.Product, error) {
+	query := "SELECT id, name, price FROM update_product_by_id($1,$2,$3)"
+	row := r.db.QueryRow(query, id, product.Name, product.Price)
+	var productUpdated model.Product
+	if err := row.Scan(&productUpdated.Id, &productUpdated.Name, &productUpdated.Price); err != nil {
+		return nil, err
+	}
+	return &productUpdated, nil
 }

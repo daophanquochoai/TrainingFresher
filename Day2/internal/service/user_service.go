@@ -8,6 +8,8 @@ import (
 type UserService interface {
 	GetUserByID(userID string) (*model.User, error)
 	CreateUser(user *model.User) (*model.User, error)
+	DeleteUserById(userID string) error
+	UpdateUserById(userID string, user *model.User) (*model.User, error)
 }
 
 type userService struct {
@@ -27,4 +29,14 @@ func (s *userService) CreateUser(user *model.User) (*model.User, error) {
 // get user by id
 func (s *userService) GetUserByID(userID string) (*model.User, error) {
 	return s.repo.GetUserByID(userID)
+}
+
+// delete user by id
+func (s *userService) DeleteUserById(userID string) error {
+	return s.repo.DeleteUserById(userID)
+}
+
+// update user by id
+func (s *userService) UpdateUserById(userID string, user *model.User) (*model.User, error) {
+	return s.repo.UpdateUserById(user, userID)
 }
