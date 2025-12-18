@@ -1,16 +1,16 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
-	"errors"
 	"go-db-demo/internal/model"
 )
 
 type UserRepository interface {
-	CreateUser(user *model.User) (*model.User, error)
-	GetUserByID(id string) (*model.User, error)
-	UpdateUserById(user *model.User, id string) (*model.User, error)
-	DeleteUserById(id string) error
+	CreateUser(ctx context.Context, user *model.User) (*model.User, error)
+	GetUserByID(ctx context.Context, id string) (*model.User, error)
+	UpdateUserById(ctx context.Context, user *model.User, id string) (*model.User, error)
+	DeleteUserById(ctx context.Context, id string) error
 }
 
 type PostgresUserRepository struct {
@@ -23,9 +23,10 @@ func NewPostgresUserRepository(db *sql.DB) UserRepository {
 }
 
 // create a new user
-func (r *PostgresUserRepository) CreateUser(user *model.User) (*model.User, error) {
+func (r *PostgresUserRepository) CreateUser(ctx context.Context, user *model.User) (*model.User, error) {
+
 	query := `INSERT INTO users ( name, email) VALUES ($1, $2) RETURNING id, name, email`
-	row := r.db.QueryRow(query, user.Name, user.Email)
+	row := r.db.QueryRowContext(ctx, query, user.Name, user.Email)
 	var createdUser model.User
 	if err := row.Scan(&createdUser.ID, &createdUser.Name, &createdUser.Email); err != nil {
 		return nil, err
@@ -34,14 +35,14 @@ func (r *PostgresUserRepository) CreateUser(user *model.User) (*model.User, erro
 }
 
 // get user by id
-func (r *PostgresUserRepository) GetUserByID(id string) (*model.User, error) {
+func (r *PostgresUserRepository) GetUserByID(ctx context.Context, id string) (*model.User, error) {
 	query := "SELECT id, name, email FROM users WHERE id = $1"
-	row := r.db.QueryRow(query, id)
+	row := r.db.QueryRowContext(ctx, query, id)
 	user := &model.User{}
 	err := row.Scan(&user.ID, &user.Name, &user.Email)
 
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 		return nil, err
@@ -50,9 +51,9 @@ func (r *PostgresUserRepository) GetUserByID(id string) (*model.User, error) {
 }
 
 // update user by id
-func (r *PostgresUserRepository) UpdateUserById(user *model.User, id string) (*model.User, error) {
+func (r *PostgresUserRepository) UpdateUserById(ctx context.Context, user *model.User, id string) (*model.User, error) {
 	query := "SELECT id, name, email from update_user_by_id($1, $2, $3)"
-	row := r.db.QueryRow(query, id, user.Name, user.Email)
+	row := r.db.QueryRowContext(ctx, query, id, user.Name, user.Email)
 	userSaved := &model.User{}
 	err := row.Scan(&userSaved.ID, &userSaved.Name, &userSaved.Email)
 	if err != nil {
@@ -62,8 +63,8 @@ func (r *PostgresUserRepository) UpdateUserById(user *model.User, id string) (*m
 }
 
 // delete user by id
-func (r *PostgresUserRepository) DeleteUserById(id string) error {
+func (r *PostgresUserRepository) DeleteUserById(ctx context.Context, id string) error {
 	query := "SELECT delete_user($1)"
-	_, err := r.db.Exec(query, id)
+	_, err := r.db.ExecContext(ctx, query, id)
 	return err
 }
