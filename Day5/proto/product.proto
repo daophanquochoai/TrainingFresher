@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package product;
+
+option go_package = "/pb/productpb";
+import "google/protobuf/empty.proto";
+
+message GetProductRequest {
+  string id = 1;
+}
+
+message Product {
+  string id = 1;
+  string name = 2;
+  string price = 3;
+}
+
+message ProductList {
+  repeated Product product = 1;
+}
+
+service ProductService {
+  rpc GetProduct(GetProductRequest) returns (Product);
+  rpc ListProducts(google.protobuf.Empty) returns (ProductList);
+}

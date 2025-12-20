@@ -1,0 +1,16 @@
+app:
+  name : product
+  grpc: 9000
+  port: 8080
+
+db:
+  host: localhost
+  port: 5432
+  user: admin
+  pass: admin
+  name: db
+
+redis:
+  addr: "localhost:6379"
+  pass: ""
+  db: 0

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"github.com/redis/go-redis/v9"
 	"go-db-demo/internal/model"
 	"go-db-demo/internal/utils"
@@ -10,7 +11,7 @@ import (
 )
 
 func Auth(redis *redis.Client) func(http.Handler) http.Handler {
-	return func(handler http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// get token
 			authHeader := r.Header.Get("Authorization")
@@ -33,22 +34,13 @@ func Auth(redis *redis.Client) func(http.Handler) http.Handler {
 				return
 			}
 
-			cached, err := redis.Get(r.Context(), "cookie").Bytes()
-			if cached == nil || err != nil {
-				response := model.Response{
-					Message: "UnAuthorized",
-					Status:  "error",
-				}
-				utils.WriteJson(w, http.StatusUnauthorized, response)
-				return
-			}
-
 			token := parts[1]
 
 			// 3. Check token in Redis
 			key := "jwt:" + token
+			fmt.Print("key : " + key)
 			userID, err := redis.Get(r.Context(), key).Result()
-			if err == nil {
+			if err != nil {
 				utils.WriteJson(w, http.StatusUnauthorized, model.Response{
 					Message: "Token expired or revoked",
 					Status:  "error",

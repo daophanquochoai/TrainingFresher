@@ -8,6 +8,7 @@ import (
 	"go-db-demo/internal/db"
 	"go-db-demo/internal/handler"
 	"go-db-demo/internal/middleware"
+	"go-db-demo/internal/model"
 	"go-db-demo/internal/repository"
 	"go-db-demo/internal/router"
 	"go-db-demo/internal/service"
@@ -62,7 +63,7 @@ func main() {
 	productRepo := repository.NewPostgresProductRepository(database, redis)
 	productService := service.NewProductService(productRepo)
 	productHandler := handler.NewProductHandler(productService)
-	r := router.NewRouter(userHandler, categoryHandler, productHandler)
+	r := router.NewRouter(userHandler, categoryHandler, productHandler, redis)
 
 	// route
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -70,6 +71,22 @@ func main() {
 		w.Write([]byte("UP"))
 	})
 
+	r.Post("/login", func(w http.ResponseWriter, r *http.Request) {
+		err := redis.Set(r.Context(), "jwt:123", "1", 15*time.Minute).Err()
+		if err != nil {
+			response := model.Response{
+				Message: err.Error(),
+				Status:  "error",
+			}
+			utils.WriteJson(w, http.StatusInternalServerError, response)
+			return
+		}
+		response := model.Response{
+			Message: "Login success",
+			Status:  "success",
+		}
+		utils.WriteJson(w, http.StatusOK, response)
+	})
 	handlerMiddle := middleware.Chain(
 		r,
 		middleware.RateLimit(redis),
