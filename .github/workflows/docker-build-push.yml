@@ -85,7 +85,4 @@ jobs:
 
             - name: Log out from Docker Hub
               if: github.event_name != 'pull_request'
-              uses: docker/login-action@v3
-              with:
-                  logout: true
-                  registry: docker.io
+              run: docker logout docker.io
