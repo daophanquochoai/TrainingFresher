@@ -5,24 +5,17 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	"product/internal/config"
 	"time"
 )
 
-type PostgresConfig struct {
-	Host string
-	Port int
-	User string
-	Pass string
-	Db   string
-}
-
-func Connect(cfg PostgresConfig) (*gorm.DB, error) {
+func Connect(cfg config.DB) (*gorm.DB, error) {
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%d TimeZone=Asia/Ho_Chi_Minh",
 		cfg.Host,
 		cfg.User,
 		cfg.Pass,
-		cfg.Db,
+		cfg.Name,
 		cfg.Port,
 	)
 

@@ -9,6 +9,7 @@ type Product struct {
 }
 
 type CreateProductRequest struct {
-	Name  string  `json:"name"`
-	Price float32 `json:"price"`
+	Name       string    `json:"name"`
+	Price      float32   `json:"price"`
+	CategoryId uuid.UUID `json:"categoryId"`
 }

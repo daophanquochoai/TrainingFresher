@@ -4,32 +4,22 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"product/internal/config"
+	"product/internal"
 )
 
 func main() {
-	// declare config
-	configPath := flag.String("config", "./config/config.yaml", "Path to config file")
+	port := flag.Int("port", 8080, "Server port")
 	flag.Parse()
 
-	var cfg, err = config.LoadConfig(*configPath)
+	app, err := internal.New()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to initialize app: %v", err)
 	}
+	// Start server
+	addr := fmt.Sprintf(":%d", *port)
+	log.Printf("Server starting on %s", addr)
 
-	fmt.Printf("config: %+v\n", cfg)
-
-	//// connect db
-	//postgresConfig := db.PostgresConfig{
-	//	Host: cfg.DB.Host,
-	//	Port: cfg.DB.Port,
-	//	User: cfg.DB.User,
-	//	Pass: cfg.DB.Pass,
-	//	Db:   cfg.DB.Name,
-	//}
-	//database, err := db.Connect(postgresConfig)
-	//
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
+	if err := app.Listen(addr); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }

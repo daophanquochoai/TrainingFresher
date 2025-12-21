@@ -6,14 +6,24 @@ option go_package = "productservice/proto/productpb";
 
 service ProductService {
   rpc GetProduct(GetProductRequest) returns (ProductResponse);
+  rpc GetProductByCategoryId( CategoryRequest) returns (ProductListResponse);
 }
 
+
 message GetProductRequest {
-  string id = 1;
+  string Id = 1;
+}
+
+message CategoryRequest {
+  string CategoryId = 1;
 }
 
 message ProductResponse {
-  string id = 1;
-  string name = 2;
-  double price = 3;
+  string Id = 1;
+  string Name = 2;
+  double Price = 3;
+}
+
+message ProductListResponse {
+  repeated ProductResponse Products = 1;
 }

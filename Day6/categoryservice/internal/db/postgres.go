@@ -1,16 +1,41 @@
 package db
 
 import (
+	"category/internal/config"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"time"
 )
 
-func Connect(cfg map[string]any) (*gorm.DB, error) {
+func Connect(cfg config.DB) (*gorm.DB, error) {
 	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
-		cfg["host"], cfg["user"], cfg["password"],
-		cfg["dbname"], cfg["port"], cfg["sslmode"],
+		"host=%s user=%s password=%s dbname=%s port=%d TimeZone=Asia/Ho_Chi_Minh",
+		cfg.Host,
+		cfg.User,
+		cfg.Pass,
+		cfg.Name,
+		cfg.Port,
 	)
-	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	// set timeout
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Lấy sql.DB để config pool
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, err
+	}
+
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(50)
+	sqlDB.SetConnMaxLifetime(30 * time.Minute)
+
+	return db, nil
 }
