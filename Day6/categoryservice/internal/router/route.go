@@ -18,6 +18,14 @@ func NewRouterHandler(categoryApi *handler.CategoryHandler) *RouterHandler {
 
 func (r *RouterHandler) InitRouter(root *fiber.App, md *middleware.Middleware) {
 
+	// Health check endpoint (registered before middleware to avoid rate limiting)
+	root.Get("/health", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"status": "ok",
+			"service": "categoryservice",
+		})
+	})
+
 	root.Use(md.Rl.Handler())
 	root.Use(md.Log.Handler())
 
